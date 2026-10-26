@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { BUILDING_STAGES_PER_ERA, ERAS } from '../config/village';
 import { getVillageProgress } from '../domain/era';
 import { isWithinDeadline } from '../domain/mission';
 import { currentStreak, guiltLevel, missedDaysInRow } from '../domain/streak';
@@ -37,6 +38,8 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
   const progress = getVillageProgress(totalDays);
   const streak = currentStreak(records, today);
   const guilt = guiltLevel(missedDaysInRow(records, today));
+  // 開発中だけ: 各時代の最終段階を見比べるための表示の上書き(保存はしない)
+  const [previewEra, setPreviewEra] = useState<number | null>(null);
 
   // 開いたときに、新しい週ならお休みチケットを配る
   useEffect(() => {
@@ -81,8 +84,8 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
       <Village
         width={width}
         height={height * 0.42}
-        eraIndex={progress.eraIndex}
-        buildingStage={progress.buildingStage}
+        eraIndex={previewEra ?? progress.eraIndex}
+        buildingStage={previewEra !== null ? BUILDING_STAGES_PER_ERA : progress.buildingStage}
         guilt={guilt}
         celebrate={celebrate}
         onCelebrated={onCelebrated}
@@ -120,6 +123,11 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
                   useAppStore.getState().recordSuccess(addDays(today, -4), targetMinutes);
                 }
               }}
+            />
+            <AppButton
+              title={previewEra === null ? '時代を見比べる(開発用)' : `次の時代へ(開発用・今は${ERAS[previewEra].name})`}
+              variant="ghost"
+              onPress={() => setPreviewEra((e) => (e === null ? 0 : e + 1 < ERAS.length ? e + 1 : null))}
             />
           </View>
         )}
