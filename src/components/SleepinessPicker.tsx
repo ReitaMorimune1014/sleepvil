@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Sleepiness } from '../store/types';
+import { colors, fontSize, spacing } from '../ui/theme';
 
 const LEVELS: Sleepiness[] = [1, 2, 3, 4, 5];
 
@@ -20,7 +21,7 @@ export function SleepinessPicker({ value, onSelect }: Props) {
             <Pressable
               key={level}
               onPress={() => onSelect(level)}
-              style={[styles.button, selected && styles.selected]}
+              style={({ pressed }) => [styles.button, selected && styles.selected, pressed && styles.pressed]}
               accessibilityRole="button"
               accessibilityState={{ selected }}
               accessibilityLabel={`眠気 ${level}`}
@@ -41,35 +42,40 @@ export function SleepinessPicker({ value, onSelect }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
+    gap: spacing.xs,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: spacing.s,
   },
   button: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#999',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pressed: {
+    backgroundColor: colors.secondary,
+  },
   selected: {
     borderWidth: 3,
-    borderColor: '#2f6fd6',
-    backgroundColor: '#e3edfc',
+    borderColor: colors.primary,
+    backgroundColor: colors.selected,
   },
   label: {
-    fontSize: 20,
+    fontSize: fontSize.body,
+    color: colors.text,
   },
   selectedLabel: {
     fontWeight: 'bold',
   },
   hint: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
   },
 });

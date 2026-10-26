@@ -1,8 +1,11 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { Barcode } from '../store/types';
+import { AppButton } from '../ui/AppButton';
+import { AppText } from '../ui/AppText';
+import { spacing } from '../ui/theme';
 
 type Props = {
   /** 読み取ったときに1回だけ呼ばれる。もう一度読むときは、この部品を作り直す(key を変える) */
@@ -22,11 +25,13 @@ export function BarcodeScanner({ onScanned }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>バーコードを読むために、カメラの使用を許可してください</Text>
+        <AppText center>バーコードを読むために、カメラの使用を許可してください</AppText>
         {permission.canAskAgain ? (
-          <Button title="許可する" onPress={requestPermission} />
+          <AppButton title="許可する" onPress={requestPermission} />
         ) : (
-          <Text style={styles.message}>iPhoneの「設定」から、このアプリのカメラをオンにしてください</Text>
+          <AppText variant="muted" center>
+            iPhoneの「設定」から、このアプリのカメラをオンにしてください
+          </AppText>
         )}
       </View>
     );
@@ -50,16 +55,11 @@ export function BarcodeScanner({ onScanned }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 16,
+    padding: spacing.l,
+    gap: spacing.m,
   },
   camera: {
     flex: 1,
-  },
-  message: {
-    fontSize: 20,
-    textAlign: 'center',
   },
 });
