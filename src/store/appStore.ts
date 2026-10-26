@@ -3,13 +3,9 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 
 import type { AlarmScheduler } from '../alarm/AlarmScheduler';
 import { totalSuccessDays } from '../domain/points';
-import type { Barcode, DayRecord, Settings, Sleepiness } from './types';
-
-/** 保存するデータ。時代や累計など、導出できるものは保存しない */
-type PersistedState = {
-  settings: Settings;
-  records: DayRecord[];
-};
+import { grantWeeklyTicket } from '../domain/tickets';
+import { migratePersistedState, PERSIST_VERSION, type PersistedState } from './migrate';
+import type { Barcode, DayRecord, Sleepiness } from './types';
 
 type Actions = {
   setTargetTime: (minutes: number) => Promise<void>;
@@ -17,7 +13,13 @@ type Actions = {
   completeOnboarding: () => void;
   /** 記録できたら true。その日に記録済み、または目標時刻が未設定なら false */
   recordSuccess: (date: string, wakeMinutes: number) => boolean;
-  recordSkip: (date: string) => boolean;
+  /**
+   * スキップを記録する。useTicket なら、お休みチケットを1枚使う(連続日数が途切れない)。
+   * その日に記録済み、目標時刻が未設定、またはチケットを使うのに残りがなければ false
+   */
+  recordSkip: (date: string, useTicket: boolean) => boolean;
+  /** 新しい週になっていればチケットを配る。アプリを開いたときに呼ぶ */
+  grantTickets: (today: string) => void;
   /** その日の記録に眠気を付ける。記録がなければ false */
   setSleepiness: (date: string, sleepiness: Sleepiness) => boolean;
   /** 設定と記録をすべて消し、アラームも取り消す(開発中の動作確認用) */
@@ -29,6 +31,7 @@ export type AppState = PersistedState & Actions;
 const initialState: PersistedState = {
   settings: { targetMinutes: null, barcode: null, onboardingCompleted: false },
   records: [],
+  tickets: { available: 0, lastGrantedWeek: null },
 };
 
 /**
@@ -68,13 +71,19 @@ export function createAppStore(storage: StateStorage, alarmScheduler: AlarmSched
             return addRecord({ date, kind: 'success', targetMinutes, wakeMinutes });
           },
 
-          recordSkip: (date) => {
-            const { targetMinutes } = get().settings;
-            if (targetMinutes === null) {
+          recordSkip: (date, useTicket) => {
+            const { settings, tickets } = get();
+            if (settings.targetMinutes === null || (useTicket && tickets.available < 1)) {
               return false;
             }
-            return addRecord({ date, kind: 'skip', targetMinutes });
+            const added = addRecord({ date, kind: 'skip', targetMinutes: settings.targetMinutes, ticketUsed: useTicket });
+            if (added && useTicket) {
+              set({ tickets: { ...tickets, available: tickets.available - 1 } });
+            }
+            return added;
           },
+
+          grantTickets: (today) => set({ tickets: grantWeeklyTicket(get().tickets, today) }),
 
           setSleepiness: (date, sleepiness) => {
             if (!get().records.some((r) => r.date === date)) {
@@ -92,10 +101,15 @@ export function createAppStore(storage: StateStorage, alarmScheduler: AlarmSched
       },
       {
         name: 'sleepvil',
-        // お休みチケットなどを足すときに番号を上げ、古いデータを移行する
-        version: 1,
+        // データの形を変えるときに番号を上げ、migrate で古いデータを移行する
+        version: PERSIST_VERSION,
+        migrate: migratePersistedState,
         storage: createJSONStorage(() => storage),
-        partialize: (state): PersistedState => ({ settings: state.settings, records: state.records }),
+        partialize: (state): PersistedState => ({
+          settings: state.settings,
+          records: state.records,
+          tickets: state.tickets,
+        }),
       },
     ),
   );
