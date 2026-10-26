@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
 
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { SleepinessPicker } from '../components/SleepinessPicker';
 import { evaluateScan, type ScanResult } from '../domain/mission';
 import { pointsForWake } from '../domain/points';
 import { localDateKey, toMinutes } from '../domain/time';
@@ -17,6 +18,9 @@ type Props = {
 export function MissionScreen({ onClose }: Props) {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [points, setPoints] = useState(0);
+  // 成功を記録した日。眠気をその日の記録に付けるために使う
+  const [successDate, setSuccessDate] = useState<string | null>(null);
+  const sleepiness = useAppStore((s) => s.records.find((r) => r.date === successDate)?.sleepiness);
   // 違うコードだったときに、スキャナーを作り直してもう一度読むための番号
   const [scanKey, setScanKey] = useState(0);
 
@@ -29,7 +33,9 @@ export function MissionScreen({ onClose }: Props) {
     const nowMinutes = toMinutes(now);
     const judged = evaluateScan(settings.barcode, scanned.data, settings.targetMinutes, nowMinutes);
     if (judged === 'success') {
-      recordSuccess(localDateKey(now), nowMinutes);
+      const date = localDateKey(now);
+      recordSuccess(date, nowMinutes);
+      setSuccessDate(date);
       setPoints(pointsForWake(settings.targetMinutes, nowMinutes));
     }
     setResult(judged);
@@ -78,6 +84,11 @@ export function MissionScreen({ onClose }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>おはようございます!</Text>
       <Text style={styles.body}>村が {points} 日分 成長しました</Text>
+      <Text style={styles.body}>今の眠気は?(選ばなくても大丈夫です)</Text>
+      <SleepinessPicker
+        value={sleepiness}
+        onSelect={(value) => successDate && useAppStore.getState().setSleepiness(successDate, value)}
+      />
       <Button title="村にもどる" onPress={() => onClose(true)} />
     </View>
   );
