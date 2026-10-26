@@ -5,14 +5,17 @@ import { isWithinDeadline } from '../domain/mission';
 import { formatMinutes, localDateKey, toMinutes } from '../domain/time';
 import { useAppStore } from '../store';
 import { selectTotalSuccessDays } from '../store/appStore';
-import { VillageCanvas } from '../village/VillageCanvas';
+import { Village } from '../village/Village';
 
 type Props = {
   onStartMission: () => void;
+  /** ミッション成功の直後なら true。村人が集まって喜ぶ */
+  celebrate: boolean;
+  onCelebrated: () => void;
 };
 
 /** ホーム画面。上半分に村、下半分に時代・累計・今日の状態を表示する */
-export function HomeScreen({ onStartMission }: Props) {
+export function HomeScreen({ onStartMission, celebrate, onCelebrated }: Props) {
   const { width, height } = useWindowDimensions();
   const targetMinutes = useAppStore((s) => s.settings.targetMinutes);
   const records = useAppStore((s) => s.records);
@@ -37,11 +40,13 @@ export function HomeScreen({ onStartMission }: Props) {
 
   return (
     <View style={styles.screen}>
-      <VillageCanvas
+      <Village
         width={width}
         height={height * 0.45}
         eraIndex={progress.eraIndex}
         buildingStage={progress.buildingStage}
+        celebrate={celebrate}
+        onCelebrated={onCelebrated}
       />
       <View style={styles.container}>
         <Text style={styles.era}>
