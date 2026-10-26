@@ -5,9 +5,10 @@ import { StyleSheet, View } from 'react-native';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { MissionScreen } from './src/screens/MissionScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { RecordsScreen } from './src/screens/RecordsScreen';
 import { useAppStore } from './src/store';
 
-type Screen = 'home' | 'mission';
+type Screen = 'home' | 'mission' | 'records';
 
 export default function App() {
   // 端末内の保存データを読み込み終わるまでは、何も表示しない
@@ -30,13 +31,15 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      {screen === 'home' ? (
+      {screen === 'home' && (
         <HomeScreen
           onStartMission={() => setScreen('mission')}
+          onOpenRecords={() => setScreen('records')}
           celebrate={pendingCelebration}
           onCelebrated={clearCelebration}
         />
-      ) : (
+      )}
+      {screen === 'mission' && (
         <MissionScreen
           onClose={(succeeded) => {
             setPendingCelebration(succeeded);
@@ -44,6 +47,7 @@ export default function App() {
           }}
         />
       )}
+      {screen === 'records' && <RecordsScreen onClose={() => setScreen('home')} />}
       <StatusBar style="auto" />
     </View>
   );
