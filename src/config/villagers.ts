@@ -15,6 +15,15 @@ export const GROUND_NEAR_Y = 560;
 export const FAR_SCALE = 0.6;
 export const NEAR_SCALE = 1.0;
 
+/** 建物を置く場所(中心のx)。段階1なら1番目だけ、段階5なら5つすべてに建てる */
+export const BUILDING_SLOTS_X: readonly number[] = [180, 420, 640, 860, 1060];
+/** 建物の下端(地面の奥の線) */
+export const BUILDING_BASE_Y = 380;
+export const BUILDING_WIDTH = 90;
+/** 建物の高さ: 先史は60、時代が進むごとに20ずつ高くなる */
+export const BUILDING_HEIGHT_BASE = 60;
+export const BUILDING_HEIGHT_PER_ERA = 20;
+
 /** 村人の行き先の候補 */
 export const PLACES: readonly Point[] = [
   { x: 150, y: 420 },
