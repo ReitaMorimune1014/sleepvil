@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { SleepinessPicker } from '../components/SleepinessPicker';
 import { formatMinutes, localDateKey } from '../domain/time';
@@ -7,6 +7,11 @@ import { addDays, formatDayLabel, startOfWeek } from '../domain/week';
 import { summarizeWeek } from '../domain/weekSummary';
 import { useAppStore } from '../store';
 import type { DayRecord } from '../store/types';
+import { AppButton } from '../ui/AppButton';
+import { AppText } from '../ui/AppText';
+import { Card } from '../ui/Card';
+import { Screen } from '../ui/Screen';
+import { colors, spacing } from '../ui/theme';
 
 type Props = {
   onClose: () => void;
@@ -35,84 +40,103 @@ export function RecordsScreen({ onClose }: Props) {
   const summary = summarizeWeek(records, weekStart);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>記録</Text>
+    <Screen scroll>
+      <AppText variant="hero" center>
+        記録
+      </AppText>
       <View style={styles.weekNav}>
-        <Button title="← 前の週" onPress={() => setWeekOffset((w) => w - 1)} />
-        <Text style={styles.body}>{formatDayLabel(weekStart)}〜</Text>
-        <Button title="次の週 →" disabled={weekOffset === 0} onPress={() => setWeekOffset((w) => w + 1)} />
+        <View style={styles.navButton}>
+          <AppButton title="← 前の週" variant="secondary" onPress={() => setWeekOffset((w) => w - 1)} />
+        </View>
+        <AppText>{formatDayLabel(weekStart)}〜</AppText>
+        <View style={styles.navButton}>
+          <AppButton
+            title="次の週 →"
+            variant="secondary"
+            disabled={weekOffset === 0}
+            onPress={() => setWeekOffset((w) => w + 1)}
+          />
+        </View>
       </View>
 
-      <Text style={styles.regularity}>
-        {summary.regularity === null
-          ? '起床時刻のばらつき: 成功が2日以上あると表示します'
-          : `起床時刻のばらつき: 約 ${Math.round(summary.regularity)} 分`}
-      </Text>
+      <Card>
+        <AppText variant="caption" center>
+          起床時刻のばらつき
+        </AppText>
+        {summary.regularity === null ? (
+          <AppText variant="muted" center>
+            成功が2日以上あると表示します
+          </AppText>
+        ) : (
+          <AppText variant="title" center>
+            約 {Math.round(summary.regularity)} 分
+          </AppText>
+        )}
+      </Card>
 
-      {summary.days.map(({ date, record }) => (
-        <View key={date} style={styles.day}>
-          <Pressable
-            style={styles.dayRow}
-            disabled={!record}
-            onPress={() => setEditingDate(editingDate === date ? null : date)}
-          >
-            <Text style={styles.body}>{formatDayLabel(date)}</Text>
-            <Text style={styles.body}>{describeRecord(record, date > today)}</Text>
-            <Text style={styles.body}>{record?.sleepiness ? `眠気 ${record.sleepiness}` : record ? '眠気 −' : ''}</Text>
-          </Pressable>
-          {record && editingDate === date && (
-            <SleepinessPicker
-              value={record.sleepiness}
-              onSelect={(value) => useAppStore.getState().setSleepiness(date, value)}
-            />
-          )}
-        </View>
-      ))}
+      <Card>
+        {summary.days.map(({ date, record }, i) => (
+          <View key={date} style={[styles.day, i > 0 && styles.dayDivider]}>
+            <Pressable
+              style={({ pressed }) => [styles.dayRow, pressed && styles.pressed]}
+              disabled={!record}
+              onPress={() => setEditingDate(editingDate === date ? null : date)}
+              accessibilityRole={record ? 'button' : undefined}
+            >
+              <AppText style={styles.dateCell}>{formatDayLabel(date)}</AppText>
+              <AppText style={styles.recordCell}>{describeRecord(record, date > today)}</AppText>
+              <AppText variant="caption">
+                {record?.sleepiness ? `眠気 ${record.sleepiness}` : record ? '眠気 −' : ''}
+              </AppText>
+            </Pressable>
+            {record && editingDate === date && (
+              <SleepinessPicker
+                value={record.sleepiness}
+                onSelect={(value) => useAppStore.getState().setSleepiness(date, value)}
+              />
+            )}
+          </View>
+        ))}
+      </Card>
 
-      <Text style={styles.hint}>記録のある日をタップすると、眠気を付け直せます</Text>
-      <Button title="ホームにもどる" onPress={onClose} />
-    </ScrollView>
+      <AppText variant="caption" center>
+        記録のある日をタップすると、眠気を付け直せます
+      </AppText>
+      <AppButton title="ホームにもどる" variant="ghost" onPress={onClose} />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    paddingTop: 64,
-    gap: 12,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
   weekNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.s,
   },
-  regularity: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginVertical: 8,
+  navButton: {
+    flex: 1,
   },
   day: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 8,
-    gap: 8,
+    paddingVertical: spacing.s,
+    gap: spacing.s,
+  },
+  dayDivider: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   dayRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.s,
   },
-  body: {
-    fontSize: 18,
+  pressed: {
+    opacity: 0.6,
   },
-  hint: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
+  dateCell: {
+    width: 96,
+  },
+  recordCell: {
+    flex: 1,
   },
 });

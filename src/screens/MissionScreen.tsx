@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { SleepinessPicker } from '../components/SleepinessPicker';
@@ -8,6 +9,11 @@ import { pointsForWake } from '../domain/points';
 import { localDateKey, toMinutes } from '../domain/time';
 import { useAppStore } from '../store';
 import type { Barcode } from '../store/types';
+import { AppButton } from '../ui/AppButton';
+import { AppText } from '../ui/AppText';
+import { Card } from '../ui/Card';
+import { Screen } from '../ui/Screen';
+import { colors, spacing } from '../ui/theme';
 
 type Props = {
   /** ホームに戻る。succeeded はミッションに成功したかどうか */
@@ -43,81 +49,73 @@ export function MissionScreen({ onClose }: Props) {
 
   if (result === null) {
     return (
-      <View style={styles.scanContainer}>
+      <SafeAreaView style={styles.scanScreen} edges={['top', 'bottom']}>
         <BarcodeScanner key={scanKey} onScanned={handleScanned} />
-        <View style={styles.footer}>
-          <Text style={styles.body}>登録した物のバーコードを映してください</Text>
-          <Button title="戻る" onPress={() => onClose(false)} />
+        <View style={styles.scanFooter}>
+          <AppText center>登録した物のバーコードを映してください</AppText>
+          <AppButton title="戻る" variant="ghost" onPress={() => onClose(false)} />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (result === 'wrong_code') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>違うコードです</Text>
-        <Text style={styles.body}>登録した物のバーコードを読み取ってください</Text>
-        <Button
+      <Screen center>
+        <AppText variant="hero" center>違うコードです</AppText>
+        <AppText variant="muted" center>登録した物のバーコードを読み取ってください</AppText>
+        <AppButton
           title="もう一度スキャンする"
           onPress={() => {
             setResult(null);
             setScanKey((k) => k + 1);
           }}
         />
-        <Button title="戻る" onPress={() => onClose(false)} />
-      </View>
+        <AppButton title="戻る" variant="ghost" onPress={() => onClose(false)} />
+      </Screen>
     );
   }
 
   if (result === 'past_deadline') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>今日の締め切りを過ぎました</Text>
-        <Text style={styles.body}>また明日、待っています</Text>
-        <Button title="戻る" onPress={() => onClose(false)} />
-      </View>
+      <Screen center>
+        <AppText variant="hero" center>今日の締め切りを過ぎました</AppText>
+        <AppText variant="muted" center>また明日、待っています</AppText>
+        <AppButton title="村にもどる" variant="secondary" onPress={() => onClose(false)} />
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>おはようございます!</Text>
-      <Text style={styles.body}>村が {points} 日分 成長しました</Text>
-      <Text style={styles.body}>今の眠気は?(選ばなくても大丈夫です)</Text>
-      <SleepinessPicker
-        value={sleepiness}
-        onSelect={(value) => successDate && useAppStore.getState().setSleepiness(successDate, value)}
-      />
-      <Button title="村にもどる" onPress={() => onClose(true)} />
-    </View>
+    <Screen center>
+      <AppText variant="hero" center>おはようございます!</AppText>
+      <Card style={styles.successCard}>
+        <AppText variant="title" center>村が {points} 日分 成長しました</AppText>
+      </Card>
+      <Card>
+        <AppText center>今の眠気は?</AppText>
+        <AppText variant="caption" center>選ばなくても大丈夫です</AppText>
+        <SleepinessPicker
+          value={sleepiness}
+          onSelect={(value) => successDate && useAppStore.getState().setSleepiness(successDate, value)}
+        />
+      </Card>
+      <AppButton title="村にもどる" onPress={() => onClose(true)} />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  scanContainer: {
+  scanScreen: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
-  footer: {
-    padding: 24,
-    gap: 12,
+  scanFooter: {
+    padding: spacing.l,
+    gap: spacing.s,
   },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    gap: 20,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  body: {
-    fontSize: 20,
-    textAlign: 'center',
+  successCard: {
+    backgroundColor: colors.selected,
+    borderColor: colors.primary,
   },
 });

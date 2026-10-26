@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Alert, Button, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { getVillageProgress } from '../domain/era';
 import { isWithinDeadline } from '../domain/mission';
@@ -8,6 +8,11 @@ import { formatMinutes, localDateKey, toMinutes } from '../domain/time';
 import { addDays } from '../domain/week';
 import { useAppStore } from '../store';
 import { selectTotalSuccessDays } from '../store/appStore';
+import { AppButton } from '../ui/AppButton';
+import { AppText } from '../ui/AppText';
+import { Card } from '../ui/Card';
+import { Screen } from '../ui/Screen';
+import { colors, spacing } from '../ui/theme';
 import { Village } from '../village/Village';
 
 type Props = {
@@ -72,37 +77,44 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
 
   return (
     <View style={styles.screen}>
+      {/* 村は画面の一番上(ステータスバーの裏)から描き、空がつながって見えるようにする */}
       <Village
         width={width}
-        height={height * 0.45}
+        height={height * 0.42}
         eraIndex={progress.eraIndex}
         buildingStage={progress.buildingStage}
         guilt={guilt}
         celebrate={celebrate}
         onCelebrated={onCelebrated}
       />
-      <View style={styles.container}>
-        <Text style={styles.era}>
-          {progress.eraName}の村(段階 {progress.buildingStage})
-        </Text>
-        <Text style={styles.body}>
-          累計 {totalDays} 日 / 連続 {streak} 日
-        </Text>
-        <Text style={styles.body}>
-          起床 {targetMinutes !== null ? formatMinutes(targetMinutes) : '未設定'} / お休みチケット {tickets} 枚
-        </Text>
-        <Text style={styles.status}>{status}</Text>
-        {canStart && <Button title="ミッション開始" onPress={onStartMission} />}
-        {canSkip && <Button title="今日はスキップ" onPress={confirmSkip} />}
-        <Button title="記録を見る" onPress={onOpenRecords} />
+      <Screen scroll edges={['bottom']}>
+        <Card>
+          <AppText variant="title" center>
+            {progress.eraName}の村(段階 {progress.buildingStage})
+          </AppText>
+          <View style={styles.stats}>
+            <Stat label="累計" value={`${totalDays}日`} />
+            <Stat label="連続" value={`${streak}日`} />
+            <Stat label="お休みチケット" value={`${tickets}枚`} />
+          </View>
+          <AppText variant="caption" center>
+            起床時刻 {targetMinutes !== null ? formatMinutes(targetMinutes) : '未設定'}
+          </AppText>
+        </Card>
+        <AppText variant="title" center>
+          {status}
+        </AppText>
+        {canStart && <AppButton title="ミッション開始" onPress={onStartMission} />}
+        {canSkip && <AppButton title="今日はスキップ" variant="secondary" onPress={confirmSkip} />}
+        <AppButton title="記録を見る" variant="ghost" onPress={onOpenRecords} />
         {/* __DEV__ は開発中(Expo Goなど)だけ true。公開版には表示されない */}
         {__DEV__ && (
           <View style={styles.devArea}>
-            <Button title="設定をやり直す(開発用)" color="#888" onPress={() => useAppStore.getState().resetAll()} />
+            <AppButton title="設定をやり直す(開発用)" variant="ghost" onPress={() => useAppStore.getState().resetAll()} />
             {/* 4日前に成功した記録を作り、その後3日起きなかった状態にする(見た目の変化の確認用) */}
-            <Button
+            <AppButton
               title="3日休んだ状態にする(開発用)"
-              color="#888"
+              variant="ghost"
               onPress={() => {
                 if (targetMinutes !== null) {
                   useAppStore.getState().recordSuccess(addDays(today, -4), targetMinutes);
@@ -111,7 +123,17 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
             />
           </View>
         )}
-      </View>
+      </Screen>
+    </View>
+  );
+}
+
+/** 数字を大きく、項目名を小さく並べる */
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.stat}>
+      <AppText variant="title">{value}</AppText>
+      <AppText variant="caption">{label}</AppText>
     </View>
   );
 }
@@ -119,29 +141,20 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  stats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  stat: {
     alignItems: 'center',
-    padding: 16,
-    gap: 8,
-    backgroundColor: '#fff',
-  },
-  era: {
-    fontSize: 26,
-    fontWeight: 'bold',
-  },
-  body: {
-    fontSize: 18,
-  },
-  status: {
-    fontSize: 22,
-    marginTop: 12,
-    textAlign: 'center',
+    gap: spacing.xs,
   },
   devArea: {
-    marginTop: 16,
+    marginTop: spacing.l,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.s,
   },
 });
