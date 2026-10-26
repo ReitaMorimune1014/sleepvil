@@ -20,6 +20,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "起床ミッションで、登録したバーコードを読み取るためにカメラを使います。映像は保存しません。"
+        }
+      ]
+    ]
   }
 }
