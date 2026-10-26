@@ -20,6 +20,8 @@ type Actions = {
   recordSkip: (date: string) => boolean;
   /** その日の記録に眠気を付ける。記録がなければ false */
   setSleepiness: (date: string, sleepiness: Sleepiness) => boolean;
+  /** 設定と記録をすべて消し、アラームも取り消す(開発中の動作確認用) */
+  resetAll: () => Promise<void>;
 };
 
 export type AppState = PersistedState & Actions;
@@ -80,6 +82,11 @@ export function createAppStore(storage: StateStorage, alarmScheduler: AlarmSched
             }
             set({ records: get().records.map((r) => (r.date === date ? { ...r, sleepiness } : r)) });
             return true;
+          },
+
+          resetAll: async () => {
+            set(initialState);
+            await alarmScheduler.cancelAll();
           },
         };
       },

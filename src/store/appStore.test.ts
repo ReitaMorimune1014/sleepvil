@@ -74,6 +74,18 @@ describe('appStore', () => {
     expect(selectTotalSuccessDays(store.getState())).toBe(1.5);
   });
 
+  test('resetAll で設定と記録が消え、アラームも取り消される', async () => {
+    const { store, alarm } = setup();
+    await store.getState().setTargetTime(390);
+    store.getState().completeOnboarding();
+    store.getState().recordSuccess('2026-10-27', 395);
+
+    await store.getState().resetAll();
+    expect(store.getState().settings).toEqual({ targetMinutes: null, barcode: null, onboardingCompleted: false });
+    expect(store.getState().records).toEqual([]);
+    expect(alarm.scheduledMinutes).toBeNull();
+  });
+
   test('保存したデータは、作り直したストアで読み込める', async () => {
     const { store, storage } = setup();
     await store.getState().setTargetTime(390);
