@@ -27,5 +27,7 @@ export type DayRecord =
       date: string;
       kind: 'skip';
       targetMinutes: number;
+      /** お休みチケットを使ったか(使った日は連続日数が途切れない) */
+      ticketUsed: boolean;
       sleepiness?: Sleepiness;
     };
