@@ -24,6 +24,12 @@ export const BUILDING_WIDTH = 90;
 export const BUILDING_HEIGHT_BASE = 60;
 export const BUILDING_HEIGHT_PER_ERA = 20;
 
+/** 畑の場所(起きなかった日が続くと、しおれた色になる) */
+export const FIELDS = [
+  { x: 230, y: 455, width: 130, height: 40 },
+  { x: 800, y: 490, width: 150, height: 40 },
+];
+
 /** 村人の行き先の候補 */
 export const PLACES: readonly Point[] = [
   { x: 150, y: 420 },

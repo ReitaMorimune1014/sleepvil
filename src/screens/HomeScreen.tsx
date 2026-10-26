@@ -3,8 +3,9 @@ import { Alert, Button, StyleSheet, Text, useWindowDimensions, View } from 'reac
 
 import { getVillageProgress } from '../domain/era';
 import { isWithinDeadline } from '../domain/mission';
-import { currentStreak } from '../domain/streak';
+import { currentStreak, guiltLevel, missedDaysInRow } from '../domain/streak';
 import { formatMinutes, localDateKey, toMinutes } from '../domain/time';
+import { addDays } from '../domain/week';
 import { useAppStore } from '../store';
 import { selectTotalSuccessDays } from '../store/appStore';
 import { Village } from '../village/Village';
@@ -30,6 +31,7 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
   const todayRecord = records.find((r) => r.date === today);
   const progress = getVillageProgress(totalDays);
   const streak = currentStreak(records, today);
+  const guilt = guiltLevel(missedDaysInRow(records, today));
 
   // 開いたときに、新しい週ならお休みチケットを配る
   useEffect(() => {
@@ -45,7 +47,8 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
   } else if (targetMinutes !== null && !isWithinDeadline(targetMinutes, toMinutes(now))) {
     status = '今日は記録なし。また明日';
   } else {
-    status = 'おはようございます';
+    // 起きなかった日が続いていたら、責めずに「待っていた」ことだけを伝える
+    status = guilt === 'none' ? 'おはようございます' : '待ってたよ';
     canStart = true;
   }
   // スキップは、その日の記録がまだなければいつでもできる(締め切り後も)
@@ -74,6 +77,7 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
         height={height * 0.45}
         eraIndex={progress.eraIndex}
         buildingStage={progress.buildingStage}
+        guilt={guilt}
         celebrate={celebrate}
         onCelebrated={onCelebrated}
       />
@@ -95,6 +99,16 @@ export function HomeScreen({ onStartMission, onOpenRecords, celebrate, onCelebra
         {__DEV__ && (
           <View style={styles.devArea}>
             <Button title="設定をやり直す(開発用)" color="#888" onPress={() => useAppStore.getState().resetAll()} />
+            {/* 4日前に成功した記録を作り、その後3日起きなかった状態にする(見た目の変化の確認用) */}
+            <Button
+              title="3日休んだ状態にする(開発用)"
+              color="#888"
+              onPress={() => {
+                if (targetMinutes !== null) {
+                  useAppStore.getState().recordSuccess(addDays(today, -4), targetMinutes);
+                }
+              }}
+            />
           </View>
         )}
       </View>
