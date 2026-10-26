@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -16,6 +16,9 @@ export default function App() {
 
   const onboardingCompleted = useAppStore((s) => s.settings.onboardingCompleted);
   const [screen, setScreen] = useState<Screen>('home');
+  // ミッション成功のあとホームに戻ったら、村人を1回だけ喜ばせる
+  const [pendingCelebration, setPendingCelebration] = useState(false);
+  const clearCelebration = useCallback(() => setPendingCelebration(false), []);
 
   if (!hydrated) {
     return <View style={styles.container} />;
@@ -28,9 +31,18 @@ export default function App() {
   return (
     <View style={styles.container}>
       {screen === 'home' ? (
-        <HomeScreen onStartMission={() => setScreen('mission')} />
+        <HomeScreen
+          onStartMission={() => setScreen('mission')}
+          celebrate={pendingCelebration}
+          onCelebrated={clearCelebration}
+        />
       ) : (
-        <MissionScreen onClose={() => setScreen('home')} />
+        <MissionScreen
+          onClose={(succeeded) => {
+            setPendingCelebration(succeeded);
+            setScreen('home');
+          }}
+        />
       )}
       <StatusBar style="auto" />
     </View>

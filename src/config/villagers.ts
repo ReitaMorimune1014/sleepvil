@@ -46,6 +46,14 @@ export const IDLE_MS = { min: 2000, max: 5000 };
 export const WORK_MS = { min: 3000, max: 6000 };
 export const REACT_MS = 5000;
 
+/** 喜ぶときに跳ねる高さ(世界座標)と、1回跳ねる時間(ミリ秒) */
+export const JUMP_HEIGHT = 20;
+export const JUMP_PERIOD_MS = 400;
+
+/** 村人の大きさ(手前にいるとき。奥では depthScale で小さくする) */
+export const VILLAGER_WIDTH = 22;
+export const VILLAGER_HEIGHT = 36;
+
 /** 人数: 先史は3人、時代が進むごとに1人増やす */
 export const VILLAGERS_BASE = 3;
 export const VILLAGERS_PER_ERA = 1;

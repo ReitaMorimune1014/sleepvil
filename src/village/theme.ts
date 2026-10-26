@@ -4,6 +4,8 @@ export const SKY_COLOR = '#cfe8ff';
 export const FAR_MOUNTAIN_COLOR = '#a9bfd6';
 export const MID_HILL_COLOR = '#9cc49a';
 export const GROUND_COLOR = '#b9d98c';
+export const VILLAGER_BODY_COLOR = '#e07a5f';
+export const VILLAGER_HEAD_COLOR = '#f2cc8f';
 
 /** 時代ごとの建物の色(ERAS と同じ順番) */
 export const ERA_BUILDING_COLORS: readonly string[] = [

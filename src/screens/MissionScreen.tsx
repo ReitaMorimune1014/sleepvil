@@ -9,7 +9,8 @@ import { useAppStore } from '../store';
 import type { Barcode } from '../store/types';
 
 type Props = {
-  onClose: () => void;
+  /** ホームに戻る。succeeded はミッションに成功したかどうか */
+  onClose: (succeeded: boolean) => void;
 };
 
 /** 起床ミッション(F2): 登録したバーコードをスキャンして完了する */
@@ -40,7 +41,7 @@ export function MissionScreen({ onClose }: Props) {
         <BarcodeScanner key={scanKey} onScanned={handleScanned} />
         <View style={styles.footer}>
           <Text style={styles.body}>登録した物のバーコードを映してください</Text>
-          <Button title="戻る" onPress={onClose} />
+          <Button title="戻る" onPress={() => onClose(false)} />
         </View>
       </View>
     );
@@ -58,7 +59,7 @@ export function MissionScreen({ onClose }: Props) {
             setScanKey((k) => k + 1);
           }}
         />
-        <Button title="戻る" onPress={onClose} />
+        <Button title="戻る" onPress={() => onClose(false)} />
       </View>
     );
   }
@@ -68,7 +69,7 @@ export function MissionScreen({ onClose }: Props) {
       <View style={styles.container}>
         <Text style={styles.title}>今日の締め切りを過ぎました</Text>
         <Text style={styles.body}>また明日、待っています</Text>
-        <Button title="戻る" onPress={onClose} />
+        <Button title="戻る" onPress={() => onClose(false)} />
       </View>
     );
   }
@@ -77,7 +78,7 @@ export function MissionScreen({ onClose }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>おはようございます!</Text>
       <Text style={styles.body}>村が {points} 日分 成長しました</Text>
-      <Button title="村にもどる" onPress={onClose} />
+      <Button title="村にもどる" onPress={() => onClose(true)} />
     </View>
   );
 }
