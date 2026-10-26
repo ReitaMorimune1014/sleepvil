@@ -3,6 +3,7 @@
 ## プロジェクト概要
 起床を習慣化するiOSアプリ。起床時にあらかじめ登録したバーコードをスキャンして完了し、村が発展する。
 要件の正は docs/REQUIREMENTS.md。仕様に迷ったら、実装する前に確認すること。
+作業の順序とマイルストーンは docs/ROADMAP.md に従う。
 
 ## 技術スタック
 Expo + TypeScript(strict) / expo-camera / react-native-skia / zustand(永続化つき) / Jest
