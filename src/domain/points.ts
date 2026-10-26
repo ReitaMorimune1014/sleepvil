@@ -1,6 +1,5 @@
 import { ON_TIME_POINTS, ON_TIME_WINDOW_MINUTES, OTHER_SUCCESS_POINTS } from '../config/points';
-
-const MINUTES_PER_DAY = 24 * 60;
+import { MINUTES_PER_DAY } from './time';
 
 /** 成功した起床の記録。時刻はいずれも0時からの経過分(例: 6:30 → 390) */
 export type SuccessfulWake = {
