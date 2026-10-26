@@ -12,8 +12,9 @@ const MAX_STEP_MS = 100;
 /**
  * 村人を動かすループ。30fps に間引いて状態を進める。
  * アプリが裏に回っている間と、この画面が表示されていない間(アンマウント後)はループを止める。
+ * paused の間も止める(村人がその場で立ち止まって待つ)。
  */
-export function useVillageLoop(count: number) {
+export function useVillageLoop(count: number, paused: boolean) {
   const [villagers, setVillagers] = useState<Villager[]>(() => resizeVillagers([], count, Math.random));
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
 
@@ -29,7 +30,7 @@ export function useVillageLoop(count: number) {
   }, []);
 
   useEffect(() => {
-    if (!appActive) {
+    if (!appActive || paused) {
       return;
     }
     let frameId = 0;
@@ -48,7 +49,7 @@ export function useVillageLoop(count: number) {
 
     frameId = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(frameId);
-  }, [appActive]);
+  }, [appActive, paused]);
 
   /** 全員を集合させて喜ばせる */
   const celebrate = useCallback(() => {

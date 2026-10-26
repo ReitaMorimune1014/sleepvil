@@ -4,6 +4,10 @@ export const SKY_COLOR = '#cfe8ff';
 export const FAR_MOUNTAIN_COLOR = '#a9bfd6';
 export const MID_HILL_COLOR = '#9cc49a';
 export const GROUND_COLOR = '#b9d98c';
+/** 起きなかった日が続いたときの地面と畑(しおれた色) */
+export const GROUND_WILTED_COLOR = '#cfc59a';
+export const FIELD_COLOR = '#5f9e3f';
+export const FIELD_WILTED_COLOR = '#a0865a';
 export const VILLAGER_BODY_COLOR = '#e07a5f';
 export const VILLAGER_HEAD_COLOR = '#f2cc8f';
 
